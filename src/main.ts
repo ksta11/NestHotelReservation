@@ -1,8 +1,13 @@
+import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
+import { MicroserviceExceptionInterceptor } from './common/interceptors/microservice-exception.interceptor';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  await app.listen(process.env.PORT ?? 3000);
+  app.setGlobalPrefix('api');
+  app.useGlobalPipes(new ValidationPipe());
+  app.useGlobalInterceptors(new MicroserviceExceptionInterceptor());
+  await app.listen(3000);
 }
 bootstrap();

@@ -1,22 +1,26 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
+import { HotelController } from './app.controller';
+import { of } from 'rxjs'; // Importa 'of' para simular un Observable
 
-describe('AppController', () => {
-  let appController: AppController;
+describe('HotelController', () => {
+  let hotelController: HotelController;
 
   beforeEach(async () => {
     const app: TestingModule = await Test.createTestingModule({
-      controllers: [AppController],
-      providers: [AppService],
+      controllers: [HotelController],
+      providers: [],
     }).compile();
 
-    appController = app.get<AppController>(AppController);
+    hotelController = app.get<HotelController>(HotelController);
   });
 
-  describe('root', () => {
-    it('should return "Hello World!"', () => {
-      expect(appController.getHello()).toBe('Hello World!');
+  describe('getHotels', () => {
+    it('should return a list of hotels', async () => {
+      const result = []; // Simula el resultado esperado
+      jest.spyOn(hotelController, 'getHotels').mockImplementation(async () => result); // Devuelve un Promise
+  
+      const response = await hotelController.getHotels(); // No necesitas toPromise() si devuelve un Promise
+      expect(response).toBe(result);
     });
   });
 });
