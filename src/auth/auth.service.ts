@@ -1,8 +1,9 @@
-import { Injectable, UnauthorizedException, Inject } from '@nestjs/common';
+import { Injectable, Inject, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ClientProxy} from '@nestjs/microservices';
 import * as bcrypt from 'bcrypt';
 import { User } from '../types/user.interface';
+import { RpcException } from '@nestjs/microservices';
 
 @Injectable()
 export class AuthService {
@@ -24,9 +25,15 @@ export class AuthService {
   // Login de usuario
   async login(email: string, password: string) {
     // Enviar mensaje al microservicio de usuarios para buscar el usuario por email
-    const user = await this.userClient
-      .send({ cmd: 'get-user-by-email' }, { email })
-      .toPromise();
+    let user: User;
+    try {
+      user = await this.userClient
+        .send({ cmd: 'get-user-by-email' }, { email })
+        .toPromise();
+    } catch (err) {
+      // Si el microservicio responde con error, propágalo como UnauthorizedException de Nest
+      throw new UnauthorizedException('Invalid credentials');
+    }
 
     if (!user) {
       throw new UnauthorizedException('Invalid credentials');

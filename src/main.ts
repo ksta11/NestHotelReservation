@@ -5,6 +5,7 @@ import { MicroserviceExceptionInterceptor } from './common/interceptors/microser
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  app.enableCors(); // Habilita CORS para permitir peticiones desde el frontend
   app.setGlobalPrefix('api');
   app.useGlobalPipes(new ValidationPipe());
   app.useGlobalInterceptors(new MicroserviceExceptionInterceptor());
