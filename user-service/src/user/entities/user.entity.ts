@@ -21,7 +21,7 @@ export class User {
   @Column({ nullable: true })
   phone: string;
 
-  @Column({ type: 'enum', enum: ['admin', 'client', 'hotel_admin'] })
+  @Column({ type: 'enum', enum: ['admin', 'client', 'hotel_admin'], default: 'client' })
   role: string;
 
   @Column({ default: true })
