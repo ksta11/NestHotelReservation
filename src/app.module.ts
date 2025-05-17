@@ -1,33 +1,77 @@
 import { Module, MiddlewareConsumer, RequestMethod } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ClientsModule, Transport } from '@nestjs/microservices';
-import { HotelController, ReservationController, UserController, ReviewController } from './app.controller';
+import { HotelController, ReservationController, UserController, ReviewController, NotificationController } from './app.controller';
 import { AuthMiddleware } from './middlewares/auth.middleware';
 import { RoleMiddleware } from './middlewares/role.middleware';
 import { AuthModule } from './auth/auth.module';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 
 @Module({
   imports: [
-    ClientsModule.register([
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: '.env',
+    }),
+    ClientsModule.registerAsync([
       {
         name: 'HOTEL_SERVICE', // Identificador del microservicio de hoteles
-        transport: Transport.TCP,
-        options: { host: 'localhost', port: 3001 }, // Dirección del microservicio de hoteles
+        imports: [ConfigModule],
+        inject: [ConfigService],
+        useFactory: (configService: ConfigService) => ({
+          transport: Transport.TCP,
+          options: { 
+            host: configService.get<string>('HOTEL_SERVICE_HOST'),
+            port: configService.get<number>('HOTEL_SERVICE_PORT'),
+          },
+        }),
       },
       {
         name: 'RESERVATION_SERVICE', // Identificador del microservicio de reservas
-        transport: Transport.TCP,
-        options: { host: 'localhost', port: 3002 }, // Dirección del microservicio de reservas
+        imports: [ConfigModule],
+        inject: [ConfigService],
+        useFactory: (configService: ConfigService) => ({
+          transport: Transport.TCP,
+          options: { 
+            host: configService.get<string>('RESERVATION_SERVICE_HOST'),
+            port: configService.get<number>('RESERVATION_SERVICE_PORT'),
+          },
+        }),
       },
       {
         name: 'USER_SERVICE', // Identificador del microservicio de usuarios
-        transport: Transport.TCP,
-        options: { host: 'localhost', port: 3003 }, // Dirección del microservicio de usuarios
+        imports: [ConfigModule],
+        inject: [ConfigService],
+        useFactory: (configService: ConfigService) => ({
+          transport: Transport.TCP,
+          options: { 
+            host: configService.get<string>('USER_SERVICE_HOST'),
+            port: configService.get<number>('USER_SERVICE_PORT'),
+          },
+        }),
+      },      {
+        name: 'REVIEW_SERVICE', // Identificador del microservicio de reseñas
+        imports: [ConfigModule],
+        inject: [ConfigService],
+        useFactory: (configService: ConfigService) => ({
+          transport: Transport.TCP,
+          options: { 
+            host: configService.get<string>('REVIEW_SERVICE_HOST'),
+            port: configService.get<number>('REVIEW_SERVICE_PORT'),
+          },
+        }),
       },
       {
-        name: 'REVIEW_SERVICE', // Identificador del microservicio de reseñas
-        transport: Transport.TCP,
-        options: { host: 'localhost', port: 3004 }, // Dirección del microservicio de reseñas
+        name: 'NOTIFICATION_SERVICE', // Identificador del microservicio de notificaciones
+        imports: [ConfigModule],
+        inject: [ConfigService],
+        useFactory: (configService: ConfigService) => ({
+          transport: Transport.TCP,
+          options: { 
+            host: configService.get<string>('NOTIFICATION_SERVICE_HOST'),
+            port: configService.get<number>('NOTIFICATION_SERVICE_PORT'),
+          },
+        }),
       },
     ]),
     TypeOrmModule.forRoot({
@@ -42,7 +86,7 @@ import { AuthModule } from './auth/auth.module';
     }),
     AuthModule,
   ],
-  controllers: [HotelController, ReservationController, UserController, ReviewController],
+  controllers: [HotelController, ReservationController, UserController, ReviewController, NotificationController],
   providers: [],
 })
 export class AppModule {

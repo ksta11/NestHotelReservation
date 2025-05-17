@@ -81,3 +81,15 @@ export class ReviewController {
     return this.reviewServiceClient.send({ cmd: 'get-reviews-by-hotel' }, { hotelId });
   }
 }
+
+@Controller('notifications')
+export class NotificationController {
+  constructor(
+    @Inject('NOTIFICATION_SERVICE') private readonly notificationServiceClient: ClientProxy,
+  ) {}
+
+  @Post('email')
+  async sendEmail(@Body() emailDto: any) {
+    return this.notificationServiceClient.send({ cmd: 'send_email' }, emailDto);
+  }
+}
