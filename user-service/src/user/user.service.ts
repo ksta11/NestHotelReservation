@@ -11,24 +11,34 @@ export class UserService {
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
   ) {}
-
-  async create(user: Partial<User>): Promise<User> {
+  async create(userData: Partial<User>): Promise<User> {
     // Verificar si el correo ya existe
-    const existingUser = await this.userRepository.findOneBy({ email: user.email });
+    const existingUser = await this.userRepository.findOneBy({ email: userData.email });
     if (existingUser) {
       throw new RpcException({
         status: 409,
-        message: `User with email ${user.email} already exists`,
+        message: `User with email ${userData.email} already exists`,
         error: 'Conflict',
       });
     }
-
+    
+    // Crear una copia limpia de los datos del usuario
+    const user: Partial<User> = { ...userData };
+    
+    // Asegurarse de que role tenga un valor por defecto si no viene en los datos
+    if (user.role === undefined || user.role === null) {
+      user.role = 'client';
+    }
+    
     // Hashear la contraseña antes de guardar
     const saltRounds = 10; // Número de rondas para generar el salt
     user.passwordHash = await bcrypt.hash(user.passwordHash, saltRounds);
 
-    // Guardar el usuario si no existe
-    return this.userRepository.save(user);
+    // Crear la instancia del usuario para aplicar valores por defecto
+    const newUser = this.userRepository.create(user);
+    
+    // Guardar el usuario en la base de datos
+    return this.userRepository.save(newUser);
   }
 
   async findAll(): Promise<User[]> {
