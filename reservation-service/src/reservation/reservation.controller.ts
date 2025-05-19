@@ -42,4 +42,26 @@ export class ReservationController {
   getReservationById(data: { id: string }) {
     return this.reservationService.findOne(data.id);
   }
+
+  // REST Endpoint: Obtener reservas por Hotel ID
+  @Get('hotel/:hotelId')
+  findByHotelId(@Param('hotelId') hotelId: string) {
+    return this.reservationService.findByHotelId(hotelId);
+  }
+  // MessagePattern: Obtener reservas por Hotel ID (para el Gateway)
+  @MessagePattern({ cmd: 'get-reservations-by-hotel' })
+  getReservationsByHotelId(data: { hotelId: string }) {
+    return this.reservationService.findByHotelId(data.hotelId);
+  }
+  
+  // MessagePattern: Verificar conflictos de reserva (para el Gateway)
+  @MessagePattern({ cmd: 'check-reservation-conflicts' })
+  checkReservationConflicts(data: { roomId: string; checkInDate: string; checkOutDate: string }) {
+    const { roomId, checkInDate, checkOutDate } = data;
+    return this.reservationService.checkReservationConflicts(
+      roomId,
+      new Date(checkInDate),
+      new Date(checkOutDate)
+    );
+  }
 }

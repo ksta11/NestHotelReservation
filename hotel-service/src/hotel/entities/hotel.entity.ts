@@ -29,9 +29,18 @@ export class Hotel {
 
   @Column()
   email: string;
-
+  
   @Column({ type: 'float', default: 0 })
   averageRating: number; // Cambiado de "rating" a "averageRating"
+  
+  @Column({ type: 'time', nullable: true })
+  checkInTime: string; // Hora de check-in (formato HH:MM)
+
+  @Column({ type: 'time', nullable: true })
+  checkOutTime: string; // Hora de check-out (formato HH:MM)
+
+  @Column({ nullable: true })
+  cancellationPolicy: string; // Política de cancelación
 
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   createdAt: Date;

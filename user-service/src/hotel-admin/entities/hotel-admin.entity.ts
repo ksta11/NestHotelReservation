@@ -9,9 +9,8 @@ export class HotelAdmin {
   @ManyToOne(() => User)
   @JoinColumn()
   user: User;
-
-  @Column()
-  hotelId: string; // Identificador del hotel
+  @Column({ nullable: true })
+  hotelId: string; // Identificador del hotel, puede ser nulo si el hotel se crea después
 
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   createdAt: Date;

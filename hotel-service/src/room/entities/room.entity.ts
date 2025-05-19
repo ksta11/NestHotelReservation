@@ -10,16 +10,34 @@ export class Room {
   roomNumber: string;
 
   @Column()
-  roomTypeId: string;
+  roomType: string; // Cambiado de roomTypeId a roomType para guardar el tipo directamente como string
 
-  @Column({ type: 'float' })
-  price: number;
-
+  @Column({ nullable: true })
+  description: string; // Descripción del tipo de habitación
   @Column()
   capacity: number;
 
-  @Column({ default: true })
-  isActive: boolean; // Cambiado de "isAvailable" a "isActive"
+  @Column({ type: 'float' })
+  price: number; // Precio estándar de la habitación
+
+  @Column({ nullable: true })
+  amenities: string; // Lista de comodidades separadas por comas o JSON
+  
+  @Column({ type: 'float', nullable: true })
+  specialPrice: number; // Precio especial para fechas específicas
+
+  @Column({ nullable: true })
+  specialPriceStartDate: Date; // Fecha de inicio del precio especial
+
+  @Column({ nullable: true })
+  specialPriceEndDate: Date; // Fecha de fin del precio especial
+
+  @Column({ 
+    type: 'enum', 
+    enum: ['available', 'occupied', 'maintenance', 'reserved', 'temp_reserved'], 
+    default: 'available'
+  })
+  state: string;
 
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   createdAt: Date;

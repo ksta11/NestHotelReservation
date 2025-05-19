@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, Patch, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Patch, Delete, Put } from '@nestjs/common';
 import { MessagePattern } from '@nestjs/microservices';
 import { ReviewService } from './review.service';
 import { Review } from './entities/review.entity';
@@ -42,9 +42,8 @@ export class ReviewController {
   getReviewById(data: { id: string }) {
     return this.reviewService.findOne(data.id);
   }
-
   // REST Endpoint: Actualizar una reseña
-  @Patch(':id')
+  @Put(':id')
   update(@Param('id') id: string, @Body() updateData: Partial<Review>) {
     return this.reviewService.update(id, updateData);
   }

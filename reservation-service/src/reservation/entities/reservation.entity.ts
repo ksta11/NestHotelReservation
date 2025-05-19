@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
 
 @Entity('reservation')
 export class Reservation {
@@ -6,7 +6,10 @@ export class Reservation {
   id: string; // UUID
 
   @Column()
-  customerId: string;
+  userId: string; // Usuario que hace la reserva (anteriormente customerId)
+
+  @Column()
+  hotelId: string; // ID del hotel para facilitar consultas
 
   @Column()
   roomId: string;
@@ -23,8 +26,11 @@ export class Reservation {
   @Column({ type: 'enum', enum: ['pending', 'confirmed', 'cancelled'] })
   status: string;
 
-  @Column({ nullable: true })
+  @Column({ nullable: true, type: 'text' })
   specialRequests: string;
+
+  @Column({ type: 'enum', enum: ['pending', 'paid', 'refunded'], default: 'pending' })
+  paymentStatus: string;
 
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   createdAt: Date;

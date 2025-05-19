@@ -89,26 +89,28 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
   controllers: [HotelController, ReservationController, UserController, ReviewController, NotificationController],
   providers: [],
 })
-export class AppModule {
-  configure(consumer: MiddlewareConsumer) {
+export class AppModule {  configure(consumer: MiddlewareConsumer) {
     // Middleware de autenticación global
-    consumer.apply(AuthMiddleware).exclude({ path: '/auth/*path', method: RequestMethod.ALL }).forRoutes('*');
+    consumer.apply(AuthMiddleware).exclude(
+      { path: 'auth/login', method: RequestMethod.POST },
+      { path: 'auth/register', method: RequestMethod.POST }
+    ).forRoutes('*');
 
     // Middleware de roles para rutas específicas
     consumer
       .apply(RoleMiddleware.create(['admin']))
-      .forRoutes({ path: '/users', method: RequestMethod.POST });
+      .forRoutes({ path: '/api/users', method: RequestMethod.POST });
 
     consumer
       .apply(RoleMiddleware.create(['admin']))
-      .forRoutes('/admin/*path');
-
+      .forRoutes('/api/admin/*path');
+      
     consumer
       .apply(RoleMiddleware.create(['hotel_admin']))
-      .forRoutes('/hotels/*path');
+      .forRoutes('/api/hotels/*path');
 
     consumer
-      .apply(RoleMiddleware.create(['client']))
-      .forRoutes('/reservations/*path');
+      .apply(RoleMiddleware.create(['client', 'hotel_admin']))
+      .forRoutes('/api/reservations/*path');
   }
 }

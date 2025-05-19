@@ -9,7 +9,7 @@ export class Review {
   hotelId: string; // Identificador del hotel
 
   @Column()
-  customerId: string; // Identificador del cliente
+  userId: string; // Identificador del usuario (anteriormente customerId)
 
   @Column()
   reservationId: string; // Identificador de la reserva
@@ -17,7 +17,7 @@ export class Review {
   @Column()
   rating: number;
 
-  @Column({ nullable: true })
+  @Column({ nullable: true, type: 'text' })
   comment: string;
 
   @Column({ default: true })

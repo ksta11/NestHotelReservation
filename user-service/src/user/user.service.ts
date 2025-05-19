@@ -76,4 +76,33 @@ export class UserService {
     }
     return user;
   }
+
+  async update(id: string, updateData: Partial<User>): Promise<User> {
+    // Verificar que el usuario exista
+    const user = await this.findOne(id);
+    
+    // Si se intenta actualizar el email, verificamos que no exista otro usuario con ese email
+    if (updateData.email && updateData.email !== user.email) {
+      const existingUserWithEmail = await this.userRepository.findOneBy({ email: updateData.email });
+      if (existingUserWithEmail) {
+        throw new RpcException({
+          status: 409,
+          message: `User with email ${updateData.email} already exists`,
+          error: 'Conflict',
+        });
+      }
+    }
+    
+    // Si se está actualizando la contraseña, hashearla
+    if (updateData.passwordHash) {
+      const saltRounds = 10;
+      updateData.passwordHash = await bcrypt.hash(updateData.passwordHash, saltRounds);
+    }
+    
+    // Actualizar el usuario
+    await this.userRepository.update(id, updateData);
+    
+    // Retornar el usuario actualizado
+    return this.findOne(id);
+  }
 }

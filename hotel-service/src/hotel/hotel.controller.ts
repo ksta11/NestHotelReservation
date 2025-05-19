@@ -1,7 +1,8 @@
-import { Controller, Get, Post, Body, Param } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Put, Patch } from '@nestjs/common';
 import { MessagePattern } from '@nestjs/microservices';
 import { HotelService } from './hotel.service';
 import { CreateHotelDto } from './dto/create-hotel.dto';
+import { UpdateHotelDto } from './dto/update-hotel.dto';
 
 @Controller('hotels')
 export class HotelController {
@@ -41,5 +42,17 @@ export class HotelController {
   @MessagePattern({ cmd: 'get-hotel' })
   getHotelById(data: { id: string }) {
     return this.hotelService.findOne(data.id);
+  }
+
+  // REST Endpoint: Actualizar un hotel
+  @Put(':id')
+  update(@Param('id') id: string, @Body() updateHotelDto: UpdateHotelDto) {
+    return this.hotelService.update(id, updateHotelDto);
+  }
+
+  // MessagePattern: Actualizar un hotel (para el Gateway)
+  @MessagePattern({ cmd: 'update-hotel' })
+  updateHotel(data: { id: string; updateHotelDto: UpdateHotelDto }) {
+    return this.hotelService.update(data.id, data.updateHotelDto);
   }
 }
