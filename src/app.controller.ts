@@ -7,19 +7,46 @@ export class HotelController {
   constructor(
     @Inject('HOTEL_SERVICE') private readonly hotelServiceClient: ClientProxy,
     @Inject('USER_SERVICE') private readonly userServiceClient: ClientProxy,
+    @Inject('NOTIFICATION_SERVICE') private readonly notificationServiceClient: ClientProxy,
   ) {}
 
   @Get()
   async getHotels() {
     return this.hotelServiceClient.send({ cmd: 'get-hotels' }, {});
   }
-
   @Post()
   async createHotel(@Body() createHotelDto: any) {
-    return this.hotelServiceClient.send({ cmd: 'create-hotel' }, createHotelDto);
+    try {
+      // Crear el hotel en el microservicio
+      const createdHotel = await firstValueFrom(
+        this.hotelServiceClient.send({ cmd: 'create-hotel' }, createHotelDto)
+      );
+      
+      // Si el hotel se creó correctamente y tenemos userId, enviar evento de notificación
+      if (createdHotel && createHotelDto.userId) {
+        // Obtener información del usuario para el correo
+        const user = await firstValueFrom(
+          this.userServiceClient.send({ cmd: 'get-user' }, { id: createHotelDto.userId })
+        );
+        
+        if (user && user.email) {
+          // Emitir evento al servicio de notificaciones
+          this.notificationServiceClient.emit('hotel_created', {
+            hotel: createdHotel,
+            user: user
+          });
+        }
+      }
+      
+      return createdHotel;
+    } catch (error) {
+      throw new HttpException(
+        error.message || 'Error al crear el hotel',
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR
+      );
+    }
   }
-  
-  @Get('by-user/:userId')
+    @Get('by-user/:userId')
   async getHotelByUserId(@Param('userId') userId: string) {
     try {
       // Paso 1: Obtener los registros de hotel_admin asociados al usuario
@@ -495,13 +522,30 @@ export class ReservationController {
 export class UserController {
   constructor(
     @Inject('USER_SERVICE') private readonly userServiceClient: ClientProxy,
+    @Inject('NOTIFICATION_SERVICE') private readonly notificationServiceClient: ClientProxy,
   ) {}
-
   @Post()
   async createUser(@Body() createUserDto: any) {
-    return this.userServiceClient.send({ cmd: 'create-user' }, createUserDto);
+    try {
+      // Crear el usuario en el microservicio
+      const createdUser = await firstValueFrom(
+        this.userServiceClient.send({ cmd: 'create-user' }, createUserDto)
+      );
+      
+      // Si el usuario se creó correctamente, enviar evento para notificación por correo
+      if (createdUser && createdUser.email) {
+        // Emitir evento al servicio de notificaciones
+        this.notificationServiceClient.emit('user_created', createdUser);
+      }
+      
+      return createdUser;
+    } catch (error) {
+      throw new HttpException(
+        error.message || 'Error al crear el usuario',
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR
+      );
+    }
   }
-
   @Get()
   async getUsers() {
     return this.userServiceClient.send({ cmd: 'get-users' }, {});
