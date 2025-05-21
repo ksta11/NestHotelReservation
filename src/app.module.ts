@@ -6,13 +6,14 @@ import { AuthMiddleware } from './middlewares/auth.middleware';
 import { RoleMiddleware } from './middlewares/role.middleware';
 import { AuthModule } from './auth/auth.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { WebSocketModule } from './websocket/websocket.module';
 
-@Module({
-  imports: [
+@Module({  imports: [
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: '.env',
     }),
+    WebSocketModule,
     ClientsModule.registerAsync([
       {
         name: 'HOTEL_SERVICE', // Identificador del microservicio de hoteles

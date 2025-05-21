@@ -252,15 +252,84 @@ export class ReservationController {
   @Get()
   async getReservations() {
     return this.reservationServiceClient.send({ cmd: 'get-reservations' }, {});
+  }    @Get('hotel/:hotelId')
+  async getReservationsByHotel(@Param('hotelId') hotelId: string) {
+    console.log(`Gateway: Solicitando reservaciones para hotel ${hotelId}`);
+    try {
+      const result = await firstValueFrom(
+        this.reservationServiceClient.send(
+          { cmd: 'get-reservations-by-hotel' }, 
+          { hotelId }
+        )
+      );
+      console.log(`Gateway: Respuesta de reservaciones para hotel ${hotelId}: `, 
+        JSON.stringify(result, null, 2));
+      return result;
+    } catch (error) {
+      console.error(`Error al obtener reservaciones para hotel ${hotelId}:`, error);
+      throw error;
+    }
+  }
+    @Get(':id/details')
+  async getReservationWithDetails(@Param('id') id: string) {
+    console.log(`Gateway: Solicitando detalles de reservación ${id}`);
+    try {
+      const result = await firstValueFrom(
+        this.reservationServiceClient.send(
+          { cmd: 'get-reservation-enriched' }, 
+          { id }
+        )
+      );
+      console.log(`Gateway: Respuesta de detalles de reservación ${id}: `, 
+        JSON.stringify(result, null, 2));
+      return result;
+    } catch (error) {
+      console.error(`Error al obtener detalles de reservación ${id}:`, error);
+      throw error;
+    }
+  }
+
+  @Put(':id/pay')
+  async markReservationAsPaid(@Param('id') id: string) {
+    console.log(`Gateway: Marcando reservación ${id} como pagada`);
+    try {
+      const result = await firstValueFrom(
+        this.reservationServiceClient.send(
+          { cmd: 'mark-reservation-paid' }, 
+          { id }
+        )
+      );
+      console.log(`Gateway: Respuesta al marcar reservación ${id} como pagada: `, 
+        JSON.stringify(result, null, 2));
+      return result;
+    } catch (error) {
+      console.error(`Error al marcar reservación ${id} como pagada:`, error);
+      throw error;
+    }
+  }
+
+  @Put(':id/status')
+  async updateReservationStatus(
+    @Param('id') id: string,
+    @Body() updateStatusDto: { status: string }
+  ) {
+    console.log(`Gateway: Actualizando estado de reservación ${id} a ${updateStatusDto.status}`);
+    try {
+      const result = await firstValueFrom(
+        this.reservationServiceClient.send(
+          { cmd: 'update-reservation-status' }, 
+          { id, status: updateStatusDto.status }
+        )
+      );
+      console.log(`Gateway: Respuesta al actualizar estado de reservación ${id}: `, 
+        JSON.stringify(result, null, 2));
+      return result;
+    } catch (error) {
+      console.error(`Error al actualizar estado de reservación ${id}:`, error);
+      throw error;
+    }
   }
   
-  @Get('hotel/:hotelId')
-  async getReservationsByHotel(@Param('hotelId') hotelId: string) {
-    return this.reservationServiceClient.send(
-      { cmd: 'get-reservations-by-hotel' }, 
-      { hotelId }
-    );
-  }
   @Post('hotel/:hotelId')
   async createReservationByHotelAdmin(
     @Param('hotelId') hotelId: string,

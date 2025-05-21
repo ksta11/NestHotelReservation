@@ -58,11 +58,17 @@ export class RoomController {
     console.log('Microservicio recibiendo solicitud get-rooms-by-hotel con hotelId:', data.hotelId);
     return this.roomService.findByHotel(data.hotelId);
   }
-  
-  // MessagePattern: Obtener habitación por número y hotel ID (para el Gateway)
+    // MessagePattern: Obtener habitación por número y hotel ID (para el Gateway)
   @MessagePattern({ cmd: 'get-room-by-number-and-hotel' })
   getRoomByNumberAndHotel(data: { roomNumber: string, hotelId: string }) {
     console.log('Microservicio recibiendo solicitud get-room-by-number-and-hotel:', data);
+    return this.roomService.findByRoomNumberAndHotelId(data.roomNumber, data.hotelId);
+  }
+  
+  // MessagePattern: Obtener habitación por número (para que sea consistente con el HotelClient)
+  @MessagePattern({ cmd: 'get-room-by-number' })
+  getRoomByNumber(data: { roomNumber: string, hotelId: string }) {
+    console.log('Microservicio recibiendo solicitud get-room-by-number:', data);
     return this.roomService.findByRoomNumberAndHotelId(data.roomNumber, data.hotelId);
   }
 
@@ -72,24 +78,50 @@ export class RoomController {
     return this.roomService.findOne(id);
   }  // MessagePattern: Obtener una habitación por ID (para el Gateway)
   @MessagePattern({ cmd: 'get-room' })
-  getRoomById(data: { id: string, hotelId?: string }) {
-    // Primero obtenemos la habitación
-    return this.roomService.findOne(data.id).then(room => {
+  async getRoomById(data: { id: string, hotelId?: string }) {
+    console.log(`Recibiendo solicitud get-room con ID: ${data.id}`);
+    
+    try {
+      // Primero obtenemos la habitación
+      const room = await this.roomService.findOne(data.id);
+      
       // Si se especificó un hotelId, verificamos que la habitación pertenezca a ese hotel
-      if (data.hotelId && room.hotel.id !== data.hotelId) {
+      if (data.hotelId && room.hotel && room.hotel.id !== data.hotelId) {
         throw new RpcException({
           status: 404,
           message: `Room with ID ${data.id} not found in hotel with ID ${data.hotelId}`,
           error: 'Not Found',
         });
       }
-      return room;
-    });
-  }  // REST Endpoint: Actualizar una habitación
+      
+      // Crear un objeto simplificado para la respuesta
+      const response = {
+        id: room.id,
+        roomNumber: room.roomNumber,
+        roomType: room.roomType,
+        price: room.price,
+        capacity: room.capacity,
+        state: room.state,
+        description: room.description,
+        amenities: room.amenities,
+        hotelId: room.hotel ? room.hotel.id : null,
+        createdAt: room.createdAt,
+        updatedAt: room.updatedAt
+      };
+      
+      console.log(`Enviando respuesta de habitación: ${JSON.stringify(response, null, 2)}`);
+      return response;
+    } catch (error) {
+      console.error(`Error al obtener habitación: ${error.message}`);
+      throw error;
+    }
+  }
+  // REST Endpoint: Actualizar una habitación
   @Put(':id')
   update(@Param('id') id: string, @Body() updateDto: UpdateRoomDto) {
     return this.roomService.update(id, updateDto);
-  }  // MessagePattern: Actualizar una habitación (para el Gateway)
+  }
+  // MessagePattern: Actualizar una habitación (para el Gateway)
   @MessagePattern({ cmd: 'update-room' })
   updateRoom(data: { id: string; hotelId?: string; updateDto: UpdateRoomDto }) {
     console.log('Microservicio recibiendo solicitud update-room:', JSON.stringify(data, null, 2));

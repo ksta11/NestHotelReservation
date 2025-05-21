@@ -27,4 +27,15 @@ export class UserClient {
       this.client.send({ cmd: 'get-user' }, { id })
     );
   }
+  
+  /**
+   * Obtiene un usuario por su correo electrónico desde el servicio de usuarios
+   * @param email Correo electrónico del usuario a buscar
+   * @returns Promise<User> con los datos del usuario
+   */
+  async getUserByEmail(email: string): Promise<User> {
+    return firstValueFrom(
+      this.client.send({ cmd: 'get-user-by-email' }, { email })
+    );
+  }
 }

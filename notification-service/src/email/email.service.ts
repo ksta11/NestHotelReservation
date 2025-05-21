@@ -1,11 +1,14 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as nodemailer from 'nodemailer';
 import { SendEmailDto } from './dto/send-email.dto';
 
 @Injectable()
 export class EmailService {
-  private transporter: nodemailer.Transporter;  constructor(private readonly configService: ConfigService) {
+  private transporter: nodemailer.Transporter;
+  private readonly logger = new Logger(EmailService.name);
+
+  constructor(private readonly configService: ConfigService) {
     this.transporter = nodemailer.createTransport({
       host: this.configService.get<string>('EMAIL_HOST'),
       port: this.configService.get<number>('EMAIL_PORT'),
@@ -27,6 +30,13 @@ export class EmailService {
     try {
       const { to, subject, text, html } = emailDto;
       
+      this.logger.log(`Intentando enviar correo a: ${to}`);
+      this.logger.debug('Configuración de correo:', {
+        from: this.configService.get<string>('EMAIL_FROM'),
+        to,
+        subject
+      });
+      
       await this.transporter.sendMail({
         from: this.configService.get<string>('EMAIL_FROM'),
         to,
@@ -35,9 +45,19 @@ export class EmailService {
         html,
       });
       
+      this.logger.log(`Correo enviado exitosamente a: ${to}`);
       return true;
     } catch (error) {
-      console.error('Error sending email:', error);
+      this.logger.error('Error enviando correo:', {
+        error: error.message,
+        stack: error.stack,
+        config: {
+          host: this.configService.get<string>('EMAIL_HOST'),
+          port: this.configService.get<number>('EMAIL_PORT'),
+          user: this.configService.get<string>('EMAIL_USER'),
+          from: this.configService.get<string>('EMAIL_FROM')
+        }
+      });
       return false;
     }
   }
@@ -49,9 +69,24 @@ export class EmailService {
     try {
       // Verifica que la conexión al servidor de correo funcione
       await this.transporter.verify();
-      console.log('Servidor de correo electrónico conectado correctamente');
+      this.logger.log('Servidor de correo electrónico conectado correctamente');
+      this.logger.debug('Configuración de correo:', {
+        host: this.configService.get<string>('EMAIL_HOST'),
+        port: this.configService.get<number>('EMAIL_PORT'),
+        user: this.configService.get<string>('EMAIL_USER'),
+        from: this.configService.get<string>('EMAIL_FROM')
+      });
     } catch (error) {
-      console.error('Error al conectar con el servidor de correo electrónico:', error);
+      this.logger.error('Error al conectar con el servidor de correo:', {
+        error: error.message,
+        stack: error.stack,
+        config: {
+          host: this.configService.get<string>('EMAIL_HOST'),
+          port: this.configService.get<number>('EMAIL_PORT'),
+          user: this.configService.get<string>('EMAIL_USER'),
+          from: this.configService.get<string>('EMAIL_FROM')
+        }
+      });
     }
   }
 }

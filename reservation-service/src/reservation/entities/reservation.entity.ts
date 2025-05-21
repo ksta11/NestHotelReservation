@@ -19,17 +19,15 @@ export class Reservation {
 
   @Column()
   checkOutDate: Date;
-
   @Column({ type: 'float' })
   totalPrice: number;
-
-  @Column({ type: 'enum', enum: ['pending', 'confirmed', 'cancelled'] })
+  @Column({ type: 'enum', enum: ['pending', 'confirmed', 'checked-in', 'checked-out', 'cancelled'] })
   status: string;
 
   @Column({ nullable: true, type: 'text' })
   specialRequests: string;
 
-  @Column({ type: 'enum', enum: ['pending', 'paid', 'refunded'], default: 'pending' })
+  @Column({ type: 'enum', enum: ['pending', 'paid', 'refunded', 'cancelled'], default: 'pending' })
   paymentStatus: string;
 
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })

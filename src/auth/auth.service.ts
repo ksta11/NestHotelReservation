@@ -54,10 +54,13 @@ export class AuthService {
 
     return this.generateToken(user);
   }
-
   // Generar token JWT
   private generateToken(user: User) {
-    const payload = { id: user.id, email: user.email, role: user.role };
+    const payload = { 
+      sub: user.id, // Using 'sub' as standard JWT claim for subject ID
+      email: user.email, 
+      role: user.role 
+    };
     return {
       accessToken: this.jwtService.sign(payload),
     };
